@@ -28,7 +28,8 @@ model Coupon {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   code      String   @unique
-  isActive  Boolean
+  isActive  Boolean  @default(true)
+  isClaimed Boolean  @default(false)
   claim     Claim?
 }
 

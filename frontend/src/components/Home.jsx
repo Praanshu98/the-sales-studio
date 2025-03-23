@@ -1,11 +1,61 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const Home = () => {
   const [coupon, setCoupon] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [ipAddress, setIpAddress] = useState(null);
 
-  const handleClick = () => {
-    setCoupon("ASDLKJ");
+  useEffect(() => {
+    const getIpAddress = async () => {
+      try {
+        const response = await fetch("https://api.ipify.org?format=json");
+        const data = await response.json();
+        setIpAddress(data.ip);
+      } catch (error) {
+        console.error("Failed to get IP address:", error);
+      }
+    };
+
+    getIpAddress();
+  }, []);
+
+  const handleGetCoupon = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/v1/claim", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ipAddress: ipAddress,
+          sessionId: "asdfasdfasfd",
+        }),
+      });
+
+      console.log(response);
+
+      if (!response.ok) {
+        setLoading(false);
+        const data = await response.json();
+        if (data.error === "CLAIM_ALREADY_MADE_FROM_SAME_IP") {
+          setError("You have already claimed coupon within the last minute");
+          return;
+        }
+        setError("Failed to claim coupon");
+        return;
+      }
+
+      const data = await response.json();
+
+      setCoupon(data.claim.coupon.code);
+      setLoading(false);
+    } catch (e) {
+      setError("Failed to claim coupon");
+      console.error(e);
+    }
   };
 
   const handleCopy = async () => {
@@ -32,18 +82,28 @@ const Home = () => {
         <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md text-center">
           <p className="text-xl text-gray-700 mb-6">Claim your coupon now!</p>
           <button
-            onClick={handleClick}
+            onClick={handleGetCoupon}
             className="w-full py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full transition-transform transform hover:scale-105 disabled:bg-gray-400"
             disabled={coupon}
           >
             Claim Coupon
           </button>
+          {loading && (
+            <div className="mt-4 flex justify-center items-center">
+              <p>Loading...</p>
+            </div>
+          )}
+          {error && (
+            <div className="mt-4 flex justify-center items-center">
+              <p>{error}</p>
+            </div>
+          )}
           {coupon && (
             <div className="mt-4 flex justify-around items-center">
               <p className="text-xl font-bold text-green-600">
                 Your Coupon is:
               </p>
-              <div className="mt-2 flex gap-4 items-center inline-block px-2 py-2 border-4 border-green-500 rounded-lg">
+              <div className="mt-2 flex gap-4 items-center  px-2 py-2 border-4 border-green-500 rounded-lg">
                 <span className="text-lg font-mono">{coupon}</span>
                 <button
                   onClick={handleCopy}
@@ -64,7 +124,7 @@ const Home = () => {
                       className="h-6 w-6"
                     />
                   )}
-                </button>{" "}
+                </button>
               </div>
             </div>
           )}

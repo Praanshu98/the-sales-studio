@@ -1,4 +1,5 @@
 import prisma from "../utils/db_connect.js";
+import crypto from "crypto";
 
 const claimCoupon = async (req, res) => {
   /*
@@ -13,7 +14,8 @@ const claimCoupon = async (req, res) => {
    */
 
   try {
-    const { ipAddress, sessionId } = req.body;
+    const { ipAddress } = req.body;
+    let { sessionId } = req.cookies;
 
     if (!ipAddress) {
       return res.status(400).json({
@@ -21,9 +23,24 @@ const claimCoupon = async (req, res) => {
       });
     }
 
-    if (!sessionId) {
+    if (!sessionId || sessionId === "") {
+      sessionId = crypto.randomUUID();
+      console.log("Generated new sessionId:", sessionId);
+    }
+
+    // check if claim is made from the same browser session
+    const browserSessionClaim = await prisma.claim.findFirst({
+      where: {
+        sessionId: sessionId,
+      },
+    });
+
+    console.log(browserSessionClaim);
+
+    if (browserSessionClaim) {
       return res.status(400).json({
-        message: "Invalid session id",
+        message: "You have already claimed coupon from this browser session",
+        error: "CLAIM_ALREADY_MADE_FROM_SAME_BROWSER_SESSION",
       });
     }
 
@@ -95,7 +112,7 @@ const claimCoupon = async (req, res) => {
       },
     });
 
-    res.status(200).json({
+    res.status(200).cookie("sessionId", sessionId).json({
       message: "Coupon claimed successfully",
       claim,
     });

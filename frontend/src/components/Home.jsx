@@ -31,17 +31,20 @@ const Home = () => {
         },
         body: JSON.stringify({
           ipAddress: ipAddress,
-          sessionId: "asdfasdfasfd",
         }),
+        credentials: "same-origin",
       });
-
-      console.log(response);
 
       if (!response.ok) {
         setLoading(false);
         const data = await response.json();
         if (data.error === "CLAIM_ALREADY_MADE_FROM_SAME_IP") {
           setError("You have already claimed coupon within the last minute");
+          return;
+        } else if (
+          data.error === "CLAIM_ALREADY_MADE_FROM_SAME_BROWSER_SESSION"
+        ) {
+          setError("You have already claimed coupon from this browser session");
           return;
         }
         setError("Failed to claim coupon");
@@ -51,6 +54,7 @@ const Home = () => {
       const data = await response.json();
 
       setCoupon(data.claim.coupon.code);
+      setError(null);
       setLoading(false);
     } catch (e) {
       setError("Failed to claim coupon");
@@ -84,7 +88,7 @@ const Home = () => {
           <button
             onClick={handleGetCoupon}
             className="w-full py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full transition-transform transform hover:scale-105 disabled:bg-gray-400"
-            disabled={coupon}
+            disabled={coupon || loading || error}
           >
             Claim Coupon
           </button>

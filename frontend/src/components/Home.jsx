@@ -73,7 +73,7 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-purple-500 to-indigo-600 flex flex-col p-6">
+    <div className="min-h-screen flex flex-col p-6">
       <header className="text-center mb-8">
         <h1 className="text-4xl font-extrabold text-white">
           Welcome, Visitor!

@@ -16,6 +16,30 @@ const AdminPage = () => {
     }
   }, [activeTab]);
 
+  const handleGenerateCoupon = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/v1/coupon/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        fetchCoupons();
+        setActiveTab("coupons");
+      } else {
+        setError(data.message);
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchCoupons = async () => {
     setLoading(true);
     setError(null);
@@ -74,26 +98,35 @@ const AdminPage = () => {
         </h1>
       </header>
       <div className="bg-white rounded-xl shadow p-4">
-        <div className="flex space-x-4 mb-4 border-b">
+        <div className="flex justify-between items-center space-x-4 mb-4 border-b">
+          <div>
+            <button
+              className={`py-2 px-4 font-semibold ${
+                activeTab === "coupons"
+                  ? "border-b-2 border-indigo-500 text-indigo-500"
+                  : "text-gray-500"
+              }`}
+              onClick={() => setActiveTab("coupons")}
+            >
+              Coupons
+            </button>
+            <button
+              className={`py-2 px-4 font-semibold ${
+                activeTab === "claims"
+                  ? "border-b-2 border-indigo-500 text-indigo-500"
+                  : "text-gray-500"
+              }`}
+              onClick={() => setActiveTab("claims")}
+            >
+              Claim History
+            </button>
+          </div>
+
           <button
-            className={`py-2 px-4 font-semibold ${
-              activeTab === "coupons"
-                ? "border-b-2 border-indigo-500 text-indigo-500"
-                : "text-gray-500"
-            }`}
-            onClick={() => setActiveTab("coupons")}
+            onClick={handleGenerateCoupon}
+            className="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-full shadow transition-transform transform hover:scale-105"
           >
-            Coupons
-          </button>
-          <button
-            className={`py-2 px-4 font-semibold ${
-              activeTab === "claims"
-                ? "border-b-2 border-indigo-500 text-indigo-500"
-                : "text-gray-500"
-            }`}
-            onClick={() => setActiveTab("claims")}
-          >
-            Claim History
+            Generate Coupon
           </button>
         </div>
         {loading && (

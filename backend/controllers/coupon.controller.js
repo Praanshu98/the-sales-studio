@@ -75,7 +75,11 @@ const getCoupon = async (req, res) => {
 
 const getAllCoupons = async (req, res) => {
   try {
-    const coupons = await prisma.coupon.findMany();
+    const coupons = await prisma.coupon.findMany({
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
 
     if (!coupons) {
       return res.status(404).json({

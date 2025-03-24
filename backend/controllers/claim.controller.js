@@ -25,7 +25,6 @@ const claimCoupon = async (req, res) => {
 
     if (!sessionId || sessionId === "") {
       sessionId = crypto.randomUUID();
-      console.log("Generated new sessionId:", sessionId);
     }
 
     // check if claim is made from the same browser session
@@ -34,8 +33,6 @@ const claimCoupon = async (req, res) => {
         sessionId: sessionId,
       },
     });
-
-    console.log(browserSessionClaim);
 
     if (browserSessionClaim) {
       return res.status(400).json({
@@ -125,4 +122,33 @@ const claimCoupon = async (req, res) => {
   }
 };
 
-export { claimCoupon };
+const getAllClaims = async (req, res) => {
+  try {
+    const claims = await prisma.claim.findMany({
+      orderBy: {
+        claimedAt: "desc",
+      },
+      include: {
+        coupon: true,
+      },
+    });
+
+    if (!claims) {
+      return res.status(404).json({
+        message: "No claims found",
+      });
+    }
+    res.status(200).json({
+      message: "All claims fetched successfully",
+      claims,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to get all claims",
+      errorDetails: error,
+    });
+  }
+};
+
+export { claimCoupon, getAllClaims };

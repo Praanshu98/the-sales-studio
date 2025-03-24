@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
+import useUserContext from "../context/userContext.jsx";
+
 const Login = () => {
+  const { setUser } = useUserContext();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -11,7 +15,7 @@ const Login = () => {
     e.preventDefault();
     // For demonstration, we're simply validating locally.
     if (username === "admin" && password === "password") {
-      // Optionally store a token or set auth state here.
+      setUser({ username: "admin", isLoggedIn: true });
       navigate("/admin");
     } else {
       setError("Invalid username or password");
